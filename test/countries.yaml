@@ -1,0 +1,21 @@
+GB:
+        multi-line: |
+                {{#unit}}{{unit}}
+                {{/unit}}{{#house_name}}{{house_name}}
+                {{/house_name}}{{#street_number}}{{street_number}} {{/street_number}}{{#street_name}}{{street_name}}
+                {{/street_name}}{{#city}}{{city}}
+                {{/city}}{{#county}}{{county}}
+                {{/county}}{{#state}}{{state}}
+                {{/state}}{{#postalcode}}{{postalcode}}
+                {{/postalcode}}{{#country}}{{country}}
+                {{/country}}
+        single-line: >
+                {{#unit}}{{unit}}
+                {{/unit}}{{#house_name}}{{house_name}}
+                {{/house_name}}{{#street_number}} {{street_number}} {{/street_number}}{{#street_name}}{{street_name}}
+                {{/street_name}}{{#city}} {{city}}
+                {{/city}}{{#county}} {{county}}
+                {{/county}}{{#state}} {{state}}
+                {{/state}}{{#postalcode}} {{postalcode}}
+                {{/postalcode}}{{#country}} {{country}}
+                {{/country}}
