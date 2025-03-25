@@ -1,6 +1,8 @@
 mod address;
+mod error;
 
 pub use address::{SimpleDeliveryAddress, SimpleDeliveryAddressFormatter};
+pub use error::SimpleAddressError;
 
 #[test]
 fn test_simple_delivery_address() {
@@ -17,11 +19,13 @@ fn test_simple_delivery_address() {
         postalcode: Some("BR3 1HZ".to_string()),
     };
 
+    println!("----------Multiline---------");
     let full_address = formatter
         .generate_multi_line_address("GB", &test_data)
         .unwrap();
 
     println!("{}", full_address);
+    println!("----------------------")
 }
 
 #[test]
@@ -60,7 +64,9 @@ fn test_generic_struct() {
         .generate_multi_line_address("GB", &test_data)
         .unwrap();
 
+    println!("------ Multiline ------");
     println!("{}", full_address);
+    println!("----- SIngle line-----");
     let full_address = formatter
         .generate_single_line_address("GB", &test_data)
         .unwrap();

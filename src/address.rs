@@ -4,6 +4,8 @@ use mustache::Template;
 use serde::{Deserialize, Serialize};
 use serde_yml::Value;
 
+use crate::SimpleAddressError;
+
 const TEMPLATE_DATA: &[u8] = include_bytes!("../test/countries.yaml");
 
 #[derive(Serialize, Deserialize)]
@@ -20,31 +22,21 @@ pub struct SimpleDeliveryAddress {
 }
 
 pub struct SimpleDeliveryAddressFormatter {
-    templates: HashMap<String, AddressTemplates>,
+    templates: HashMap<String, Template>,
 }
 
-// TODO, implement results etc.
 impl SimpleDeliveryAddressFormatter {
+    // Unwrap used here as the YAML is validated in the build.rs
     pub fn new() -> Self {
         let countries_template_data = serde_yml::from_slice::<Value>(&TEMPLATE_DATA).unwrap();
-
         let mut templates = HashMap::new();
         for (key, value) in countries_template_data.as_mapping().unwrap() {
             templates.insert(
                 key.as_str().unwrap().to_lowercase(),
-                AddressTemplates {
-                    single_line: mustache::compile_str(
-                        value.get("single-line").unwrap().as_str().unwrap(),
-                    )
+                mustache::compile_str(value.get("multi-line-template").unwrap().as_str().unwrap())
                     .unwrap(),
-                    multi_line: mustache::compile_str(
-                        value.get("multi-line").unwrap().as_str().unwrap(),
-                    )
-                    .unwrap(),
-                },
             );
         }
-
         return Self { templates };
     }
 
@@ -52,33 +44,34 @@ impl SimpleDeliveryAddressFormatter {
         &self,
         country: &str,
         address_parts: &T,
-    ) -> Option<String> {
-        return Some(
-            self.templates
-                .get(&country.to_lowercase())?
-                .multi_line
-                .render_to_string(address_parts)
-                .unwrap()
-                .replace("\n", ", "),
-        );
+    ) -> Result<String, SimpleAddressError> {
+        Ok(multiline_string_to_single(
+            self.generate_multi_line_address(country, address_parts)?,
+        ))
     }
 
     pub fn generate_multi_line_address<T: Serialize>(
         &self,
         country: &str,
         address_parts: &T,
-    ) -> Option<String> {
-        return Some(
+    ) -> Result<String, SimpleAddressError> {
+        Ok(clean_multiline_string(
             self.templates
-                .get(&country.to_lowercase())?
-                .multi_line
-                .render_to_string(address_parts)
-                .unwrap(),
-        );
+                .get(&country.to_lowercase())
+                .ok_or(SimpleAddressError::CountryNotSupported(country.to_string()))?
+                .render_to_string(address_parts)?,
+        ))
     }
 }
 
-struct AddressTemplates {
-    single_line: Template,
-    multi_line: Template,
+fn multiline_string_to_single(address: String) -> String {
+    address.replace("\n", ", ")
+}
+
+fn clean_multiline_string(address: String) -> String {
+    address
+        .replace("\n\n", "\n")
+        .replace("\n ", "\n")
+        .trim()
+        .to_string()
 }
