@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use serde_yml::Value;
 
-const TEMPLATE_DATA: &[u8] = include_bytes!("test/countries.yaml");
+const TEMPLATE_DATA: &[u8] =
+    include_bytes!("simple-delivery-address/templates/address_formats/countries.yaml");
 
 fn main() {
     println!("Reading in template data and verifying.");
@@ -11,7 +12,7 @@ fn main() {
     for (key, value) in countries_template_data.as_mapping().unwrap() {
         templates.insert(
             key.as_str().unwrap().to_lowercase(),
-            mustache::compile_str(value.get("multi-line-template").unwrap().as_str().unwrap())
+            mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
                 .unwrap(),
         );
     }

@@ -13,6 +13,5 @@ serde = { version = "1.0", features = ["derive"] }
 
 [build-dependencies]
 mustache = "0.9"
-# TODO: With serde yaml being deprecated, what's the best library? Using serde-yaml for now.
 serde_yml = "0.0.12"
 serde = { version = "1.0", features = ["derive"] }

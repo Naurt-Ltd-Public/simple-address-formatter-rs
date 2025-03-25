@@ -6,9 +6,10 @@ use serde_yml::Value;
 
 use crate::SimpleAddressError;
 
-const TEMPLATE_DATA: &[u8] = include_bytes!("../test/countries.yaml");
+const TEMPLATE_DATA: &[u8] =
+    include_bytes!("../simple-delivery-address/templates/address_formats/countries.yaml");
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SimpleDeliveryAddress {
     pub unit: Option<String>,
     pub house_name: Option<String>,
@@ -33,7 +34,7 @@ impl SimpleDeliveryAddressFormatter {
         for (key, value) in countries_template_data.as_mapping().unwrap() {
             templates.insert(
                 key.as_str().unwrap().to_lowercase(),
-                mustache::compile_str(value.get("multi-line-template").unwrap().as_str().unwrap())
+                mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
                     .unwrap(),
             );
         }
@@ -70,8 +71,16 @@ fn multiline_string_to_single(address: String) -> String {
 
 fn clean_multiline_string(address: String) -> String {
     address
-        .replace("\n\n", "\n")
-        .replace("\n ", "\n")
+        .split("\n")
+        .filter_map(|x| {
+            let va = x.trim();
+            if !va.is_empty() {
+                Some(va.to_owned() + "\n")
+            } else {
+                None
+            }
+        })
+        .collect::<String>()
         .trim()
         .to_string()
 }

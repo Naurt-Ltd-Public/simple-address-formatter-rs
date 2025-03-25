@@ -1,0 +1,3 @@
+[submodule "simple-delivery-address"]
+	path = simple-delivery-address
+	url = git@github.com:Naurt-Ltd-Public/simple-delivery-address.git
