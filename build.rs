@@ -12,8 +12,12 @@ fn main() {
     for (key, value) in countries_template_data.as_mapping().unwrap() {
         templates.insert(
             key.as_str().unwrap().to_lowercase(),
-            mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
-                .unwrap(),
+            (
+                mustache::compile_str(value.get("singleline_template").unwrap().as_str().unwrap())
+                    .unwrap(),
+                mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
+                    .unwrap(),
+            ),
         );
     }
 }
