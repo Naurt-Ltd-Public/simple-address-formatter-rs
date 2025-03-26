@@ -6,6 +6,7 @@ use std::fs::{self, File};
 struct TestData {
     components: SimpleDeliveryAddress,
     expected_multiline: String,
+    expected_singleline: String,
 }
 
 #[test]
@@ -30,14 +31,23 @@ fn run_all_test_cases() {
         let test_data: Vec<TestData> = serde_yml::from_reader(File::open(&path).unwrap()).unwrap();
 
         for test_scenario in test_data {
-            let actual_address =
+            let actual_multiline =
                 address_formatter.generate_multi_line_address(country, &test_scenario.components);
 
-            assert!(actual_address.is_ok());
+            assert!(actual_multiline.is_ok());
 
             assert_eq!(
-                actual_address.unwrap(),
+                actual_multiline.unwrap(),
                 test_scenario.expected_multiline.trim()
+            );
+            let actual_singleline =
+                address_formatter.generate_single_line_address(country, &test_scenario.components);
+
+            assert!(actual_singleline.is_ok());
+
+            assert_eq!(
+                actual_singleline.unwrap(),
+                test_scenario.expected_singleline.trim()
             )
         }
     }

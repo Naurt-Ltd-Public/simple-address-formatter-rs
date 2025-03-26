@@ -9,6 +9,9 @@ use crate::SimpleAddressError;
 const TEMPLATE_DATA: &[u8] =
     include_bytes!("../simple-delivery-address/templates/address_formats/countries.yaml");
 
+const MULTILINE_DELIMITER: &'static str = "\n";
+const SINGLELINE_DELIMITER: &'static str = ", ";
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SimpleDeliveryAddress {
     pub unit: Option<String>,
@@ -23,7 +26,7 @@ pub struct SimpleDeliveryAddress {
 }
 
 pub struct SimpleDeliveryAddressFormatter {
-    templates: HashMap<String, Template>,
+    templates: HashMap<String, AddressTemplates>,
 }
 
 impl SimpleDeliveryAddressFormatter {
@@ -34,8 +37,16 @@ impl SimpleDeliveryAddressFormatter {
         for (key, value) in countries_template_data.as_mapping().unwrap() {
             templates.insert(
                 key.as_str().unwrap().to_lowercase(),
-                mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
+                AddressTemplates {
+                    singleline: mustache::compile_str(
+                        value.get("singleline_template").unwrap().as_str().unwrap(),
+                    )
                     .unwrap(),
+                    multiline: mustache::compile_str(
+                        value.get("multiline_template").unwrap().as_str().unwrap(),
+                    )
+                    .unwrap(),
+                },
             );
         }
         return Self { templates };
@@ -46,8 +57,12 @@ impl SimpleDeliveryAddressFormatter {
         country: &str,
         address_parts: &T,
     ) -> Result<String, SimpleAddressError> {
-        Ok(multiline_string_to_single(
-            self.generate_multi_line_address(country, address_parts)?,
+        Ok(clean_singleline_string(
+            self.templates
+                .get(&country.to_lowercase())
+                .ok_or(SimpleAddressError::CountryNotSupported(country.to_string()))?
+                .singleline
+                .render_to_string(address_parts)?,
         ))
     }
 
@@ -60,22 +75,35 @@ impl SimpleDeliveryAddressFormatter {
             self.templates
                 .get(&country.to_lowercase())
                 .ok_or(SimpleAddressError::CountryNotSupported(country.to_string()))?
+                .multiline
                 .render_to_string(address_parts)?,
         ))
     }
 }
 
-fn multiline_string_to_single(address: String) -> String {
-    address.replace("\n", ", ")
+fn clean_singleline_string(address: String) -> String {
+    address
+        .split(SINGLELINE_DELIMITER)
+        .filter_map(|x| {
+            let va = x.trim();
+            if !va.is_empty() {
+                Some(va.to_owned() + SINGLELINE_DELIMITER)
+            } else {
+                None
+            }
+        })
+        .collect::<String>()
+        .trim_end_matches(SINGLELINE_DELIMITER)
+        .to_string()
 }
 
 fn clean_multiline_string(address: String) -> String {
     address
-        .split("\n")
+        .split(MULTILINE_DELIMITER)
         .filter_map(|x| {
             let va = x.trim();
             if !va.is_empty() {
-                Some(va.to_owned() + "\n")
+                Some(va.to_owned() + MULTILINE_DELIMITER)
             } else {
                 None
             }
@@ -83,4 +111,9 @@ fn clean_multiline_string(address: String) -> String {
         .collect::<String>()
         .trim()
         .to_string()
+}
+
+struct AddressTemplates {
+    singleline: Template,
+    multiline: Template,
 }
