@@ -18,6 +18,7 @@ pub struct SimpleDeliveryAddress {
     pub house_name: Option<String>,
     pub street_number: Option<String>,
     pub street_name: Option<String>,
+    pub locality: Option<String>,
     pub city: Option<String>,
     pub county: Option<String>,
     pub state: Option<String>,
