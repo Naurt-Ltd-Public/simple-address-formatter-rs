@@ -1,4 +1,4 @@
-[submodule "simple-delivery-address"]
-	path = simple-delivery-address
-	url = git@github.com:Naurt-Ltd-Public/simple-delivery-address.git
+[submodule "simple-address-format"]
+	path = simple-address-format
+	url = git@github.com:Naurt-Ltd-Public/simple-address-format.git
 	branch = main

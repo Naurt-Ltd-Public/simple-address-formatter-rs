@@ -1,3 +1,3 @@
-# Simple Delivery Address Rust
+# Simple Address Rust
 
-The rust logic to process Simple Delivery Address Templates.
+The rust logic to process Simple Address Templates.

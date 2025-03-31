@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde_yml::Value;
 
 const TEMPLATE_DATA: &[u8] =
-    include_bytes!("simple-delivery-address/templates/address_formats/countries.yaml");
+    include_bytes!("simple-address-format/templates/address_formats/countries.yaml");
 
 fn main() {
     println!("Reading in template data and verifying.");

@@ -1,17 +1,17 @@
 use serde::Deserialize;
-use simple_delivery_address_rs::{SimpleDeliveryAddress, SimpleDeliveryAddressFormatter};
+use simple_address_formatter::{SimpleAddressFormat, SimpleAddressFormatter};
 use std::fs::{self, File};
 
 #[derive(Deserialize, Debug)]
 struct TestData {
-    components: SimpleDeliveryAddress,
+    components: SimpleAddressFormat,
     expected_multiline: String,
     expected_singleline: String,
 }
 
 #[test]
 fn run_all_test_cases() {
-    let test_paths = fs::read_dir("simple-delivery-address/tests/address_formats")
+    let test_paths = fs::read_dir("simple-address-format/tests/address_formats")
         .unwrap()
         .filter_map(|x| {
             let path = x.unwrap().path();
@@ -23,7 +23,7 @@ fn run_all_test_cases() {
             }
         });
 
-    let address_formatter = SimpleDeliveryAddressFormatter::new();
+    let address_formatter = SimpleAddressFormatter::new();
 
     for path in test_paths {
         let country = path.file_stem().unwrap().to_str().unwrap();
@@ -32,7 +32,7 @@ fn run_all_test_cases() {
 
         for test_scenario in test_data {
             let actual_multiline =
-                address_formatter.generate_multi_line_address(country, &test_scenario.components);
+                address_formatter.generate_multiline_address(country, &test_scenario.components);
 
             assert!(actual_multiline.is_ok());
 
@@ -41,7 +41,7 @@ fn run_all_test_cases() {
                 test_scenario.expected_multiline.trim()
             );
             let actual_singleline =
-                address_formatter.generate_single_line_address(country, &test_scenario.components);
+                address_formatter.generate_singleline_address(country, &test_scenario.components);
 
             assert!(actual_singleline.is_ok());
 

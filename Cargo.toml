@@ -1,5 +1,5 @@
 [package]
-name = "simple-delivery-address-rs"
+name = "simple-address-formatter"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"

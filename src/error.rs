@@ -1,8 +1,12 @@
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
+
+/// Wrapper type for errors that can occur within the formatter.
 pub enum SimpleAddressError {
+    /// Country is not supported, or not yet implemented. See https://github.com/Naurt-Ltd-Public/simple-address-format for supported countries.
     CountryNotSupported(String),
+    /// The mustache template cannot be rendered. Shouldn't occur due to compile time checks.
     RenderError(mustache::Error),
 }
 
