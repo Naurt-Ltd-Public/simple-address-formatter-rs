@@ -1,4 +1,4 @@
 [submodule "simple-address-format"]
 	path = simple-address-format
-	url = git@github.com:Naurt-Ltd-Public/simple-address-format.git
+	url = https://github.com/Naurt-Ltd-Public/simple-address-format.git
 	branch = main
