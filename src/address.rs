@@ -135,11 +135,11 @@ fn clean_multiline_string(address: String) -> String {
         .split(MULTILINE_DELIMITER)
         .filter_map(|x| {
             let va = x.trim();
-            if !va.is_empty() {
-                Some(va.to_owned() + MULTILINE_DELIMITER)
-            } else {
+            if va.is_empty(){
                 None
-            }
+            } else{
+                Some(va.trim_matches(',').trim_matches(' ').to_owned() + MULTILINE_DELIMITER)
+            } 
         })
         .collect::<String>()
         .trim()
