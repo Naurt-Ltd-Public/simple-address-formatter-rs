@@ -120,7 +120,12 @@ fn clean_singleline_string(address: String) -> String {
         .filter_map(|x| {
             let va = x.trim();
             if !va.is_empty() {
-                Some(va.to_owned() + SINGLELINE_DELIMITER)
+                if va == "-" {
+                    // Added to handle empty portions of Brazil addresses.
+                    None
+                } else {
+                    Some(va.to_owned() + SINGLELINE_DELIMITER)
+                }
             } else {
                 None
             }
@@ -135,11 +140,19 @@ fn clean_multiline_string(address: String) -> String {
         .split(MULTILINE_DELIMITER)
         .filter_map(|x| {
             let va = x.trim();
-            if va.is_empty(){
+            if va.is_empty() {
                 None
-            } else{
-                Some(va.trim_matches(',').trim_matches(' ').to_owned() + MULTILINE_DELIMITER)
-            } 
+            } else {
+                let new_va = va
+                    .trim_matches(|c| c == ',' || c == ' ' || c == '-')
+                    .to_owned();
+
+                if new_va.is_empty() {
+                    None
+                } else {
+                    Some(new_va + MULTILINE_DELIMITER)
+                }
+            }
         })
         .collect::<String>()
         .trim()
