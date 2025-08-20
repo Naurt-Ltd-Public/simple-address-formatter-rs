@@ -34,9 +34,6 @@ fn run_all_test_cases() {
             let actual_multiline =
                 address_formatter.generate_multiline_address(country, &test_scenario.components);
 
-            if country == "br" {
-                println!("Here's BR: {:?}", actual_multiline);
-            }
             assert!(actual_multiline.is_ok());
 
             assert_eq!(
