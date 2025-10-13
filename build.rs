@@ -1,23 +1,46 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
+use include_dir::{include_dir, Dir};
 use serde_yml::Value;
 
-const TEMPLATE_DATA: &[u8] =
-    include_bytes!("simple-address-format/templates/address_formats/countries.yaml");
+static TEMPLATES_DIR: Dir =
+    include_dir!("$CARGO_MANIFEST_DIR/simple-address-format/templates/address_formats");
 
 fn main() {
     println!("Reading in template data and verifying.");
-    let countries_template_data = serde_yml::from_slice::<Value>(&TEMPLATE_DATA).unwrap();
-    let mut templates = HashMap::new();
-    for (key, value) in countries_template_data.as_mapping().unwrap() {
-        templates.insert(
-            key.as_str().unwrap().to_lowercase(),
-            (
-                mustache::compile_str(value.get("singleline_template").unwrap().as_str().unwrap())
-                    .unwrap(),
-                mustache::compile_str(value.get("multiline_template").unwrap().as_str().unwrap())
-                    .unwrap(),
-            ),
-        );
+    let mut m = BTreeMap::new();
+
+    for f in TEMPLATES_DIR.files() {
+        let name = f.path().file_stem().unwrap().to_string_lossy().to_string(); // "AT"
+        let text = f.contents_utf8().expect("utf-8");
+
+        if let Ok(map) = serde_yml::from_str::<BTreeMap<String, Value>>(text) {
+            for (k, v) in map {
+                m.insert(
+                    k.to_lowercase(),
+                    (
+                        mustache::compile_str(
+                            &v.get("multiline_template").unwrap().as_str().unwrap(),
+                        )
+                        .unwrap(),
+                        mustache::compile_str(
+                            &v.get("singleline_template").unwrap().as_str().unwrap(),
+                        )
+                        .unwrap(),
+                    ),
+                );
+            }
+        } else {
+            let v: Value = serde_yml::from_str(text).expect("yaml shape");
+            m.insert(
+                name.to_lowercase(),
+                (
+                    mustache::compile_str(&v.get("multiline_template").unwrap().as_str().unwrap())
+                        .unwrap(),
+                    mustache::compile_str(&v.get("singleline_template").unwrap().as_str().unwrap())
+                        .unwrap(),
+                ),
+            );
+        }
     }
 }

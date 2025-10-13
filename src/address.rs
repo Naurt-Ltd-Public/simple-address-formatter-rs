@@ -1,13 +1,55 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
+use include_dir::{include_dir, Dir};
 use mustache::Template;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use serde_yml::Value;
 
 use crate::SimpleAddressError;
 
-const TEMPLATE_DATA: &[u8] =
-    include_bytes!("../simple-address-format/templates/address_formats/countries.yaml");
+static TEMPLATES_DIR: Dir =
+    include_dir!("$CARGO_MANIFEST_DIR/simple-address-format/templates/address_formats");
+
+#[derive(Debug, Deserialize)]
+struct FileTpl {
+    multiline_template: String,
+    singleline_template: String,
+}
+
+struct AddressTemplates {
+    singleline: Template,
+    multiline: Template,
+}
+
+static ALL: Lazy<BTreeMap<String, AddressTemplates>> = Lazy::new(|| {
+    let mut m = BTreeMap::new();
+    for f in TEMPLATES_DIR.files() {
+        let name = f.path().file_stem().unwrap().to_string_lossy().to_string(); // "AT"
+        let text = f.contents_utf8().expect("utf-8");
+        // allow both shapes: {AT: {...}} or {...}
+        if let Ok(map) = serde_yml::from_str::<BTreeMap<String, FileTpl>>(text) {
+            for (k, v) in map {
+                m.insert(
+                    k.to_lowercase(),
+                    AddressTemplates {
+                        multiline: mustache::compile_str(&v.multiline_template).unwrap(),
+                        singleline: mustache::compile_str(&v.singleline_template).unwrap(),
+                    },
+                );
+            }
+        } else {
+            let v: FileTpl = serde_yml::from_str(text).expect("yaml shape");
+            m.insert(
+                name.to_lowercase(),
+                AddressTemplates {
+                    multiline: mustache::compile_str(&v.multiline_template).unwrap(),
+                    singleline: mustache::compile_str(&v.singleline_template).unwrap(),
+                },
+            );
+        }
+    }
+    m
+});
 
 const MULTILINE_DELIMITER: &'static str = "\n";
 const SINGLELINE_DELIMITER: &'static str = ", ";
@@ -43,9 +85,7 @@ pub struct SimpleAddressFormat {
 /// Formats address parts into country specific multiline or singleline address.
 ///
 /// This stores pre-compiled templates for speedy run time formatting.
-pub struct SimpleAddressFormatter {
-    templates: HashMap<String, AddressTemplates>,
-}
+pub struct SimpleAddressFormatter;
 
 impl SimpleAddressFormatter {
     /// Create a new address formatter
@@ -55,24 +95,8 @@ impl SimpleAddressFormatter {
     ///
     /// Unwrap used here as the YAML is validated in the build.rs
     pub fn new() -> Self {
-        let countries_template_data = serde_yml::from_slice::<Value>(&TEMPLATE_DATA).unwrap();
-        let mut templates = HashMap::new();
-        for (key, value) in countries_template_data.as_mapping().unwrap() {
-            templates.insert(
-                key.as_str().unwrap().to_lowercase(),
-                AddressTemplates {
-                    singleline: mustache::compile_str(
-                        value.get("singleline_template").unwrap().as_str().unwrap(),
-                    )
-                    .unwrap(),
-                    multiline: mustache::compile_str(
-                        value.get("multiline_template").unwrap().as_str().unwrap(),
-                    )
-                    .unwrap(),
-                },
-            );
-        }
-        return Self { templates };
+        let _a = &ALL;
+        return Self;
     }
 
     /// Format address parts into a singleline address, separated by commas.
@@ -86,8 +110,7 @@ impl SimpleAddressFormatter {
         address_parts: &T,
     ) -> Result<String, SimpleAddressError> {
         Ok(clean_singleline_string(
-            self.templates
-                .get(&country.to_lowercase())
+            ALL.get(&country.to_lowercase())
                 .ok_or(SimpleAddressError::CountryNotSupported(country.to_string()))?
                 .singleline
                 .render_to_string(address_parts)?,
@@ -105,8 +128,7 @@ impl SimpleAddressFormatter {
         address_parts: &T,
     ) -> Result<String, SimpleAddressError> {
         Ok(clean_multiline_string(
-            self.templates
-                .get(&country.to_lowercase())
+            ALL.get(&country.to_lowercase())
                 .ok_or(SimpleAddressError::CountryNotSupported(country.to_string()))?
                 .multiline
                 .render_to_string(address_parts)?,
@@ -157,9 +179,4 @@ fn clean_multiline_string(address: String) -> String {
         .collect::<String>()
         .trim()
         .to_string()
-}
-
-struct AddressTemplates {
-    singleline: Template,
-    multiline: Template,
 }
