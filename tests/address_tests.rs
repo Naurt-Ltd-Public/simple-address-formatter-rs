@@ -4,6 +4,7 @@ use std::fs::{self, File};
 
 #[derive(Deserialize, Debug)]
 struct TestData {
+    description: String,
     components: SimpleAddressFormat,
     expected_multiline: String,
     expected_singleline: String,
@@ -34,20 +35,32 @@ fn run_all_test_cases() {
             let actual_multiline =
                 address_formatter.generate_multiline_address(country, &test_scenario.components);
 
-            assert!(actual_multiline.is_ok());
+            assert!(
+                actual_multiline.is_ok(),
+                "{} failed",
+                test_scenario.description
+            );
 
             assert_eq!(
                 actual_multiline.unwrap(),
-                test_scenario.expected_multiline.trim()
+                test_scenario.expected_multiline.trim(),
+                "{} failed",
+                test_scenario.description
             );
             let actual_singleline =
                 address_formatter.generate_singleline_address(country, &test_scenario.components);
 
-            assert!(actual_singleline.is_ok());
+            assert!(
+                actual_singleline.is_ok(),
+                "{} failed",
+                test_scenario.description
+            );
 
             assert_eq!(
                 actual_singleline.unwrap(),
-                test_scenario.expected_singleline.trim()
+                test_scenario.expected_singleline.trim(),
+                "{} failed",
+                test_scenario.description
             )
         }
     }
