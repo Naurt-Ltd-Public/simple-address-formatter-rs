@@ -13,7 +13,7 @@ fn main() {
     for f in TEMPLATES_DIR.files() {
         let name = f.path().file_stem().unwrap().to_string_lossy().to_string(); // "AT"
         let text = f.contents_utf8().expect("utf-8");
-
+        println!("Processing: {}", text);
         if let Ok(map) = serde_yml::from_str::<BTreeMap<String, Value>>(text) {
             for (k, v) in map {
                 m.insert(
