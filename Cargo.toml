@@ -1,8 +1,19 @@
 [package]
 name = "simple-address-formatter"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 build = "build.rs"
+license = "MIT"
+description = "A simple tool to format global addresses"
+authors = [
+    "Indigo Curnick <indigo.c@naurt.com>",
+    "Andrew Bowell <andrew.b@naurt.com>",
+]
+repository = "https://github.com/Naurt-Ltd-Public/simple-address-formatter-rs"
+readme = "README.md"
+categories = ["template-engine"]
+keywords = ["address", "formatting"]
+
 
 [dependencies]
 mustache = "0.9"
