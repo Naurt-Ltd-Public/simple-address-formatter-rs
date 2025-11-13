@@ -52,7 +52,8 @@ static ALL: Lazy<BTreeMap<String, AddressTemplates>> = Lazy::new(|| {
 });
 
 const MULTILINE_DELIMITER: &'static str = "\n";
-const SINGLELINE_DELIMITER: &'static str = ", ";
+const SINGLELINE_DELIMITER_EN: &'static str = ", ";
+const SINGLELINE_DELIMITER_AR: &'static str = " ،";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 /// Simple format to store address components
@@ -137,8 +138,13 @@ impl SimpleAddressFormatter {
 }
 
 fn clean_singleline_string(address: String) -> String {
+    let delimiter = if address.contains(SINGLELINE_DELIMITER_AR) {
+        SINGLELINE_DELIMITER_AR
+    } else {
+        SINGLELINE_DELIMITER_EN
+    };
     address
-        .split(SINGLELINE_DELIMITER)
+        .split(delimiter)
         .filter_map(|x| {
             let va = x.trim();
             if !va.is_empty() {
@@ -146,14 +152,14 @@ fn clean_singleline_string(address: String) -> String {
                     // Added to handle empty portions of Brazil addresses.
                     None
                 } else {
-                    Some(va.to_owned() + SINGLELINE_DELIMITER)
+                    Some(va.to_owned() + delimiter)
                 }
             } else {
                 None
             }
         })
         .collect::<String>()
-        .trim_end_matches(SINGLELINE_DELIMITER)
+        .trim_end_matches(delimiter)
         .to_string()
 }
 
