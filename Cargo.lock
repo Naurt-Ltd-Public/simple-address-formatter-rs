@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "simple-address-formatter"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "include_dir",
  "mustache",
